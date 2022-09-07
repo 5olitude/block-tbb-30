@@ -53,6 +53,27 @@ func (s *State) Add(tx Tx) error {
 	return nil
 }
 
+func (s *State) Persist() error {
+	mempool := make([]Tx, len(s.txMempool))
+	copy(mempool, s.txMempool)
+	for i := 0; i < len(mempool); i++ {
+		txJson, err := json.Marshal(s.txMempool[i])
+		if err != nil {
+			return err
+		}
+
+		if _, err := s.dbFile.Write(append(txJson, '\n')); err != nil {
+			return err
+		}
+		s.txMempool = append(s.txMempool[:i], s.txMempool[i+1])
+	}
+	return nil
+}
+
+func (s *State) Close() {
+	s.dbFile.Close()
+}
+
 func (s *State) apply(tx Tx) error {
 	if tx.IsReward() {
 		s.Balances[tx.To] += tx.Value
