@@ -8,9 +8,7 @@ import (
 )
 
 const flagFrom = "from"
-
 const flagTo = "to"
-
 const flagValue = "value"
 
 func txCmd() *cobra.Command {
@@ -21,10 +19,11 @@ func txCmd() *cobra.Command {
 			return incorrectUsageErr()
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-
 		},
 	}
+
 	txsCmd.AddCommand(txAddCmd())
+
 	return txsCmd
 }
 
@@ -36,31 +35,40 @@ func txAddCmd() *cobra.Command {
 			from, _ := cmd.Flags().GetString(flagFrom)
 			to, _ := cmd.Flags().GetString(flagTo)
 			value, _ := cmd.Flags().GetUint(flagValue)
+
 			tx := database.NewTx(database.NewAccount(from), database.NewAccount(to), value, "")
+
 			state, err := database.NewStateFromDisk()
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
 			defer state.Close()
+
 			err = state.Add(tx)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
+
 			err = state.Persist()
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
-			fmt.Println("TX successfully added to the ledger")
+
+			fmt.Println("TX successfully added to the ledger.")
 		},
 	}
-	cmd.Flags().String(flagFrom, "", "From which account to send tokens")
+
+	cmd.Flags().String(flagFrom, "", "From what account to send tokens")
 	cmd.MarkFlagRequired(flagFrom)
+
 	cmd.Flags().String(flagTo, "", "To what account to send tokens")
 	cmd.MarkFlagRequired(flagTo)
+
 	cmd.Flags().Uint(flagValue, 0, "How many tokens to send")
 	cmd.MarkFlagRequired(flagValue)
+
 	return cmd
 }
