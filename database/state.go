@@ -2,17 +2,21 @@ package database
 
 import (
 	"bufio"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
+type SnapShot [32]byte
+
 type State struct {
 	Balances  map[Account]uint
 	txMempool []Tx
-
-	dbFile *os.File
+	dbFile    *os.File
+	snapshot  SnapShot
 }
 
 func NewStateFromDisk() (*State, error) {
@@ -38,7 +42,7 @@ func NewStateFromDisk() (*State, error) {
 
 	scanner := bufio.NewScanner(f)
 
-	state := &State{balances, make([]Tx, 0), f}
+	state := &State{balances, make([]Tx, 0), f, SnapShot{}}
 
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
@@ -46,7 +50,10 @@ func NewStateFromDisk() (*State, error) {
 		}
 
 		var tx Tx
-		json.Unmarshal(scanner.Bytes(), &tx)
+		err = json.Unmarshal(scanner.Bytes(), &tx)
+		if err != nil {
+			return nil, err
+		}
 
 		if err := state.apply(tx); err != nil {
 			return nil, err
@@ -79,8 +86,9 @@ func (s *State) Persist() error {
 		if _, err = s.dbFile.Write(append(txJson, '\n')); err != nil {
 			return err
 		}
-
+		fmt.Println(s.txMempool)
 		s.txMempool = append(s.txMempool[:i], s.txMempool[i+1:]...)
+
 	}
 
 	return nil
@@ -103,5 +111,17 @@ func (s *State) apply(tx Tx) error {
 	s.Balances[tx.From] -= tx.Value
 	s.Balances[tx.To] += tx.Value
 
+	return nil
+}
+
+func (s *State) doSanpShot() error {
+	_, err := s.dbFile.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+	txsData, err := ioutil.ReadAll(s.dbFile)
+	if err != nil {
+		s.snapshot = sha256.Sum256(txsData)
+	}
 	return nil
 }

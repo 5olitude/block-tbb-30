@@ -10,6 +10,7 @@ import (
 const flagFrom = "from"
 const flagTo = "to"
 const flagValue = "value"
+const flagReward = "reward"
 
 func txCmd() *cobra.Command {
 	var txsCmd = &cobra.Command{
