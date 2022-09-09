@@ -59,8 +59,16 @@ func NewStateFromDisk() (*State, error) {
 			return nil, err
 		}
 	}
+	err = state.doSnapShot()
+	if err != nil {
+		return nil, err
+	}
 
 	return state, nil
+}
+
+func (s *State) LatestSnapShot() SnapShot {
+	return s.snapshot
 }
 
 func (s *State) Add(tx Tx) error {
@@ -73,29 +81,34 @@ func (s *State) Add(tx Tx) error {
 	return nil
 }
 
-func (s *State) Persist() error {
+func (s *State) Persist() (SnapShot, error) {
 	mempool := make([]Tx, len(s.txMempool))
 	copy(mempool, s.txMempool)
 
 	for i := 0; i < len(mempool); i++ {
 		txJson, err := json.Marshal(s.txMempool[i])
 		if err != nil {
-			return err
+			return SnapShot{}, err
 		}
-
+		fmt.Printf("Persisting new TX to disk:\n")
+		fmt.Printf("\t%s\n", txJson)
 		if _, err = s.dbFile.Write(append(txJson, '\n')); err != nil {
-			return err
+			return SnapShot{}, err
 		}
-		fmt.Println(s.txMempool)
+		err = s.doSnapShot()
+		if err != nil {
+			return SnapShot{}, err
+		}
+		fmt.Printf("NewDb Snapshot %x\n", s.snapshot)
 		s.txMempool = append(s.txMempool[:i], s.txMempool[i+1:]...)
 
 	}
 
-	return nil
+	return s.snapshot, nil
 }
 
-func (s *State) Close() {
-	s.dbFile.Close()
+func (s *State) Close() error {
+	return s.dbFile.Close()
 }
 
 func (s *State) apply(tx Tx) error {
@@ -114,14 +127,18 @@ func (s *State) apply(tx Tx) error {
 	return nil
 }
 
-func (s *State) doSanpShot() error {
+func (s *State) doSnapShot() error {
 	_, err := s.dbFile.Seek(0, 0)
 	if err != nil {
 		return err
 	}
 	txsData, err := ioutil.ReadAll(s.dbFile)
+	fmt.Println(string(txsData))
+	fmt.Println(err)
 	if err != nil {
-		s.snapshot = sha256.Sum256(txsData)
+		return err
 	}
+	s.snapshot = sha256.Sum256(txsData)
+
 	return nil
 }
