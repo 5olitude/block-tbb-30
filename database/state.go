@@ -81,6 +81,7 @@ func (s *State) AddTx(tx Tx) error {
 	if err := s.apply(tx); err != nil {
 		return err
 	}
+	s.txMempool = append(s.txMempool, tx)
 	return nil
 }
 
@@ -133,4 +134,3 @@ func (s *State) apply(tx Tx) error {
 
 	return nil
 }
-
