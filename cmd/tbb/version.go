@@ -6,9 +6,9 @@ import (
 )
 
 const Major = "0"
-const Minor = "1"
+const Minor = "5"
 const Fix = "0"
-const Verbal = "TX Add && Balances List"
+const Verbal = "Flexible DataDir"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
