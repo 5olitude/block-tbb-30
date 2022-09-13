@@ -1,6 +1,7 @@
 package main
 
 import (
+	"blocks/node"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
