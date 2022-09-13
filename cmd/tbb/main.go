@@ -20,6 +20,7 @@ func main() {
 	tbbCmd.AddCommand(balancesCmd())
 	tbbCmd.AddCommand(txCmd())
 	tbbCmd.AddCommand(runCmd())
+	tbbCmd.AddCommand(migrateCmd())
 
 	err := tbbCmd.Execute()
 	if err != nil {
