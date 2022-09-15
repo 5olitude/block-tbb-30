@@ -1,6 +1,7 @@
 package main
 
 import (
+	"blocks/fs"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
@@ -33,6 +34,11 @@ func main() {
 func addDefaultRequiredFlags(cmd *cobra.Command) {
 	cmd.Flags().String(flagDataDir, "", "absolute path of data where db will be stored")
 	cmd.MarkFlagRequired(flagDataDir)
+}
+func getDataDirFromCmd(cmd *cobra.Command) string {
+	dataDir, _ := cmd.Flags().GetString(flagDataDir)
+
+	return fs.ExpandPath(dataDir)
 }
 func incorrectUsageErr() error {
 	return fmt.Errorf("incorrect usage")

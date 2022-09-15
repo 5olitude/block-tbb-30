@@ -9,6 +9,9 @@ type ErrRes struct {
 	Error string `json:"error"`
 }
 
+type SyncRes struct {
+	Blocks []database.Block `json:"blocks"`
+}
 type BalanceRes struct {
 	Hash     database.Hash             `json:"block_hash"`
 	Balances map[database.Account]uint `json:"balances"`
@@ -63,4 +66,20 @@ func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		KnownPeers: node.KnownPeers,
 	}
 	writeRes(w, res)
+}
+
+func syncHandler(w http.ResponseWriter, r *http.Request, datadir string) {
+	reqHash := r.URL.Query().Get(endpointSyncQueryKeyFromBlock)
+	hash := database.Hash{}
+	err := hash.UnmarshalText([]byte(reqHash))
+	if err != nil {
+		writeErrRes(w, err)
+		return
+	}
+	blocks, err := database.GetBlocksAfter(hash, datadir)
+	if err != nil {
+		writeErrRes(w, err)
+		return
+	}
+	writeRes(w, SyncRes{Blocks: blocks})
 }
