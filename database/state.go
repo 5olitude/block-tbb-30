@@ -114,7 +114,7 @@ func (s *State) Persist() (Hash, error) {
 	s.latestBlockHash = latestBlockHash
 	s.latestBlock = block
 	s.txMempool = []Tx{}
-	return s.latestBlockHash, nil
+	return latestBlockHash, nil
 }
 
 func (s *State) Close() error {
