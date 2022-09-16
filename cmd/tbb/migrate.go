@@ -13,8 +13,8 @@ var migrateCmd = func() *cobra.Command {
 		Use:   "migrate",
 		Short: "Migrates the blockchain db according to new bussiness rules",
 		Run: func(cmd *cobra.Command, args []string) {
-			dataDir, _ := cmd.Flags().GetString(flagDataDir)
-			state, err := database.NewStateFromDisk(dataDir)
+
+			state, err := database.NewStateFromDisk(getDataDirFromCmd(cmd))
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
@@ -29,8 +29,8 @@ var migrateCmd = func() *cobra.Command {
 					database.NewTx("andrej", "andrej", 700, "reward"),
 				},
 			)
-			state.AddBlock(block0)
-			block0hash, err := state.Persist()
+
+			block0hash, err := state.AddBlock(block0)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
@@ -48,8 +48,7 @@ var migrateCmd = func() *cobra.Command {
 					database.NewTx("andrej", "andrej", 600, "reward"),
 				},
 			)
-			state.AddBlock(block1)
-			block1hash, err := state.Persist()
+			block1hash, err := state.AddBlock(block1)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
@@ -62,8 +61,7 @@ var migrateCmd = func() *cobra.Command {
 					database.NewTx("andrej", "andrej", 24700, "reward"),
 				},
 			)
-			state.AddBlock(block2)
-			_, err = state.Persist()
+			_, err = state.AddBlock(block2)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
