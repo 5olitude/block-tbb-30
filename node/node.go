@@ -10,7 +10,7 @@ import (
 const DefaultIP = "127.0.0.1"
 const DefaultHTTPort = 8080
 const endpointStatus = "/node/status"
-const endpointSync = "node/sync"
+const endpointSync = "/node/sync"
 const endpointSyncQueryKeyFromBlock = "fromBlock"
 const endpointAddPeer = "/node/peer"
 const endpointAddPeerQueryKeyIP = "ip"
@@ -66,7 +66,7 @@ func (n *Node) Run() error {
 		txAddHandler(w, r, state)
 	})
 
-	http.HandleFunc("endpointStatus", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc(endpointStatus, func(w http.ResponseWriter, r *http.Request) {
 		statusHandler(w, r, n)
 	})
 	http.HandleFunc(endpointSync, func(w http.ResponseWriter, r *http.Request) {
