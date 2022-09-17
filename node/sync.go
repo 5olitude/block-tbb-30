@@ -9,7 +9,7 @@ import (
 )
 
 func (n *Node) sync(ctx context.Context) error {
-	ticker := time.NewTimer(10 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 	for {
 		select {
 		case <-ticker.C:
@@ -22,6 +22,7 @@ func (n *Node) sync(ctx context.Context) error {
 }
 func (n *Node) doSync() {
 	for _, peer := range n.KnownPeers {
+		fmt.Println("im peer", peer.Port)
 		if n.ip == peer.IP && n.port == peer.Port {
 			continue
 		}
@@ -29,6 +30,7 @@ func (n *Node) doSync() {
 		fmt.Printf("Searching for new Peers and their Blocks and Peers: '%s'\n", peer.TcpAddress())
 
 		status, err := queryPeerStatus(peer)
+		fmt.Println(status)
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
 			fmt.Printf("Peer '%s' was removed from KnownPeers\n", peer.TcpAddress())
@@ -56,23 +58,27 @@ func (n *Node) doSync() {
 }
 func (n *Node) syncBlocks(peer PeerNode, status StatusRes) error {
 	localBlockNumber := n.state.LatestBlock().Header.Number
-	if localBlockNumber < status.Number {
-		newBlocksCount := status.Number - localBlockNumber
+	if status.Hash.IsEmpty() {
+		return nil
+	}
+	if status.Number < localBlockNumber {
+		return nil
+	}
+	if status.Number == 0 && !n.state.LatestBlockHash().IsEmpty() {
+		return nil
+	}
+	newBlocksCount := status.Number - localBlockNumber
+	if localBlockNumber == 0 && status.Number == 0 {
+		newBlocksCount = 1
+	}
+	fmt.Printf("Found %d new blocks from Peer %s\n", newBlocksCount, peer.TcpAddress())
 
-		fmt.Printf("Found %d new blocks from Peer %s\n", newBlocksCount, peer.TcpAddress())
-
-		blocks, err := fetchBlocksFromPeer(peer, n.state.LatestBlockHash())
-		if err != nil {
-			return err
-		}
-
-		err = n.state.AddBlocks(blocks)
-		if err != nil {
-			return err
-		}
+	blocks, err := fetchBlocksFromPeer(peer, n.state.LatestBlockHash())
+	if err != nil {
+		return err
 	}
 
-	return nil
+	return n.state.AddBlocks(blocks)
 }
 
 func (n *Node) syncKnownPeers(peer PeerNode, status StatusRes) error {
@@ -155,12 +161,15 @@ func fetchBlocksFromPeer(peer PeerNode, fromBlock database.Hash) ([]database.Blo
 
 func queryPeerStatus(peer PeerNode) (StatusRes, error) {
 	url := fmt.Sprintf("http://%s%s", peer.TcpAddress(), endpointStatus)
+	fmt.Println(url)
 	res, err := http.Get(url)
+	fmt.Println(err)
 	if err != nil {
 		return StatusRes{}, err
 	}
 	statusRes := StatusRes{}
 	err = readRes(res, &statusRes)
+	fmt.Println(statusRes)
 	if err != nil {
 		return StatusRes{}, nil
 	}

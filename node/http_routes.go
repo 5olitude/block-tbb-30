@@ -49,7 +49,7 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, state *database.State)
 	req := TxAddReq{}
 	err := readReq(r, &req)
 	if err != nil {
-		writeRes(w, err)
+		writeErrRes(w, err)
 		return
 	}
 	tx := database.NewTx(database.NewAccount(req.From), database.NewAccount(req.To), req.Value, req.Data)

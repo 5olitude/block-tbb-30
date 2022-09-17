@@ -1,6 +1,7 @@
 package database
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -39,7 +40,10 @@ type BlockFS struct {
 func NewBlock(parent Hash, number uint64, time uint64, txs []Tx) Block {
 	return Block{BlockHeader{parent, number, time}, txs}
 }
-
+func (h Hash) IsEmpty() bool {
+	emptyHash := Hash{}
+	return bytes.Equal(emptyHash[:], h[:])
+}
 func (b Block) Hash() (Hash, error) {
 	blockJson, err := json.Marshal(b)
 	if err != nil {
