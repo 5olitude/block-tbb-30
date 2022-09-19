@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// nonce referr
+// git push https://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@github.com/5olitude/block-tbb-30.git
 type PendingBlock struct {
 	parent database.Hash
 	number uint64
