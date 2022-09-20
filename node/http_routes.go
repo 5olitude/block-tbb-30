@@ -32,7 +32,7 @@ type TxAddReq struct {
 }
 
 type TxAddRes struct {
-	Hash database.Hash `json:"block_hash"`
+	Success bool `json:"success"`
 }
 
 type StatusRes struct {
