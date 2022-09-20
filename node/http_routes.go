@@ -53,7 +53,7 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		return
 	}
 	tx := database.NewTx(database.NewAccount(req.From), database.NewAccount(req.To), req.Value, req.Data)
-	err = node.AddPendingTX(tx, node.info)
+	err = node.AddPendingTX(tx, node.Info)
 	if err != nil {
 		writeRes(w, err)
 		return
@@ -65,7 +65,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	res := StatusRes{
 		Hash:       node.state.LatestBlockHash(),
 		Number:     node.state.LatestBlock().Header.Number,
-		KnownPeers: node.KnownPeers,
+		KnownPeers: node.knownPeers,
 		PendingTXs: node.getPendingTXsAsArray(),
 	}
 	writeRes(w, res)

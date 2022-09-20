@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
-	"time"
 )
 
 var migrateCmd = func() *cobra.Command {
@@ -25,7 +24,6 @@ var migrateCmd = func() *cobra.Command {
 			pendingBlock := node.NewPendingBlock(
 				database.Hash{},
 				state.NextBlockNumber(),
-				uint64(time.Now().Unix()),
 				[]database.Tx{
 					database.NewTx("andrej", "andrej", 3, ""),
 					database.NewTx("andrej", "andrej", 700, "reward"),

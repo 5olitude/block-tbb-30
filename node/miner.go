@@ -2,6 +2,7 @@ package node
 
 import (
 	"blocks/database"
+	"blocks/fs"
 	"context"
 	"fmt"
 	"math/rand"
@@ -14,12 +15,11 @@ type PendingBlock struct {
 	parent database.Hash
 	number uint64
 	time   uint64
-	miner  database.Account
 	txs    []database.Tx
 }
 
-func NewPendingBlock(parent database.Hash, number uint64, miner database.Account, txs []database.Tx) PendingBlock {
-	return PendingBlock{parent, number, uint64(time.Now().Unix()), miner, txs}
+func NewPendingBlock(parent database.Hash, number uint64, txs []database.Tx) PendingBlock {
+	return PendingBlock{parent, number, uint64(time.Now().Unix()), txs}
 }
 
 func Mine(ctx context.Context, pb PendingBlock) (database.Block, error) {
@@ -36,7 +36,7 @@ func Mine(ctx context.Context, pb PendingBlock) (database.Block, error) {
 		select {
 		case <-ctx.Done():
 			fmt.Println("mining cancelled")
-			return database.Block{}, fmt.Errorf()
+			return database.Block{}, fmt.Errorf("mining cancelled. %s", ctx.Err())
 		default:
 
 		}
@@ -45,7 +45,7 @@ func Mine(ctx context.Context, pb PendingBlock) (database.Block, error) {
 		if attempt%1000000 == 0 || attempt == 1 {
 			fmt.Printf("Mining %d Pending Txs.Attempt:%d\n", len(pb.txs), attempt)
 		}
-		block = database.NewBlock(pb.parent, pb.number, nonce, pb.time, pb.miner, pb.txs)
+		block = database.NewBlock(pb.parent, pb.number, nonce, pb.time, pb.txs)
 		blockHash, err := block.Hash()
 		if err != nil {
 			return database.Block{}, fmt.Errorf("couldnt mine .block. %s", err.Error())
@@ -56,7 +56,7 @@ func Mine(ctx context.Context, pb PendingBlock) (database.Block, error) {
 	fmt.Printf("\tHeight: '%v'\n", block.Header.Number)
 	fmt.Printf("\tNonce: '%v'\n", block.Header.Nonce)
 	fmt.Printf("\tCreated: '%v'\n", block.Header.Time)
-	fmt.Printf("\tMiner: '%v'\n", block.Header.Miner)
+	fmt.Printf("\tMiner: '%v'\n", block.Header.Time)
 	fmt.Printf("\tParent: '%v'\n\n", block.Header.Parent.Hex())
 
 	fmt.Printf("\tAttempt: '%v'\n", attempt)
