@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 )
 
 type Hash [32]byte
@@ -51,4 +52,11 @@ func (b Block) Hash() (Hash, error) {
 		return Hash{}, err
 	}
 	return sha256.Sum256(blockJson), nil
+}
+
+func IsBlockHashValid(hash Hash) bool {
+	return fmt.Sprintf("%x", hash[0]) == "0" &&
+		fmt.Sprintf("%x", hash[1]) == "0" &&
+		fmt.Sprintf("%x", hash[2]) == "0" &&
+		fmt.Sprintf("%x", hash[3]) != "0"
 }
