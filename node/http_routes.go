@@ -39,6 +39,7 @@ type StatusRes struct {
 	Hash       database.Hash       `json:"block_hash"`
 	Number     uint64              `json:"block_number"`
 	KnownPeers map[string]PeerNode `json:"peers_known"`
+	PendingTXs []database.Tx       `json:"pending_txs"`
 }
 
 func listBalanceHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
