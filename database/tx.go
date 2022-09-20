@@ -1,5 +1,7 @@
 package database
 
+import "time"
+
 type Account string
 
 func NewAccount(value string) Account {
@@ -15,7 +17,7 @@ type Tx struct {
 }
 
 func NewTx(from Account, to Account, value uint, data string) Tx {
-	return Tx{from, to, value, data}
+	return Tx{from, to, value, data, uint64(time.Now().Unix())}
 }
 
 func (t Tx) IsReward() bool {
