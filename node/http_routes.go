@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type ErrRes struct {
@@ -46,7 +45,7 @@ func listBalanceHandler(w http.ResponseWriter, r *http.Request, state *database.
 	writeRes(w, BalanceRes{state.LatestBlockHash(), state.Balances})
 }
 
-func txAddHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
+func txAddHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	req := TxAddReq{}
 	err := readReq(r, &req)
 	if err != nil {
@@ -54,18 +53,12 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, state *database.State)
 		return
 	}
 	tx := database.NewTx(database.NewAccount(req.From), database.NewAccount(req.To), req.Value, req.Data)
-	block := database.NewBlock(
-		state.LatestBlockHash(),
-		state.LatestBlock().Header.Number+1,
-		uint64(time.Now().Unix()),
-		[]database.Tx{tx},
-	)
-	hash, err := state.AddBlock(block)
+	err = node.AddPendingTX(tx, node.info)
 	if err != nil {
 		writeRes(w, err)
 		return
 	}
-	writeRes(w, TxAddRes{hash})
+	writeRes(w, TxAddRes{true})
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
@@ -73,6 +66,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		Hash:       node.state.LatestBlockHash(),
 		Number:     node.state.LatestBlock().Header.Number,
 		KnownPeers: node.KnownPeers,
+		PendingTXs: node.getPendingTXsAsArray(),
 	}
 	writeRes(w, res)
 }
