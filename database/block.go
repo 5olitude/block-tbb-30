@@ -38,8 +38,8 @@ type BlockFS struct {
 	Value Block `json:"block"`
 }
 
-func NewBlock(parent Hash, number uint64, time uint64, txs []Tx) Block {
-	return Block{BlockHeader{parent, number, time}, txs}
+func NewBlock(parent Hash, number uint64, nonce uint32, time uint64, txs []Tx) Block {
+	return Block{BlockHeader{parent, number, nonce, time}, txs}
 }
 func (h Hash) IsEmpty() bool {
 	emptyHash := Hash{}
