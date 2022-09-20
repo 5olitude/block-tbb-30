@@ -29,6 +29,7 @@ type Block struct {
 type BlockHeader struct {
 	Parent Hash   `json:"parent"`
 	Number uint64 `json:"number"`
+	Nonce  uint32 `json:"nonce"`
 	Time   uint64 `json:"time"`
 }
 
