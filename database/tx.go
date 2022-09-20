@@ -1,6 +1,10 @@
 package database
 
-import "time"
+import (
+	"crypto/sha256"
+	"encoding/json"
+	"time"
+)
 
 type Account string
 
@@ -22,4 +26,12 @@ func NewTx(from Account, to Account, value uint, data string) Tx {
 
 func (t Tx) IsReward() bool {
 	return t.Data == "reward"
+}
+
+func (t Tx) Hash() (Hash, error) {
+	txJson, err := json.Marshal(t)
+	if err != nil {
+		return Hash{}, err
+	}
+	return sha256.Sum256(txJson), nil
 }
