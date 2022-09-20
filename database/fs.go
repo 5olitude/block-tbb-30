@@ -39,6 +39,10 @@ func fileExist(filepath string) bool {
 	return true
 }
 
+func RemoveDir(path string) error {
+	return os.RemoveAll(path)
+}
+
 func dirExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
