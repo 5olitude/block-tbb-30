@@ -9,7 +9,7 @@ import (
 )
 
 func (n *Node) sync(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(45 * time.Second)
 	for {
 		select {
 		case <-ticker.C:
@@ -64,21 +64,32 @@ func (n *Node) doSync() {
 }
 func (n *Node) syncBlocks(peer PeerNode, status StatusRes) error {
 	localBlockNumber := n.state.LatestBlock().Header.Number
-	if localBlockNumber < status.Number {
-		newBlocksCount := status.Number - localBlockNumber
-		fmt.Printf("Found %d new blocks from Peer %s\n", newBlocksCount, peer.TcpAddress())
-		blocks, err := fetchBlocksFromPeer(peer, n.state.LatestBlockHash())
+	if status.Hash.IsEmpty() {
+		return nil
+	}
+	if status.Number < localBlockNumber {
+		return nil
+	}
+	if status.Number == 0 && !n.state.LatestBlockHash().IsEmpty() {
+		return nil
+	}
+	newBlocksCount := status.Number - localBlockNumber
+	if localBlockNumber == 0 && status.Number == 0 {
+		newBlocksCount = 1
+	}
+	fmt.Printf("Found %d new blocks from Peer %s\n", newBlocksCount, peer.TcpAddress())
+
+	blocks, err := fetchBlocksFromPeer(peer, n.state.LatestBlockHash())
+	if err != nil {
+		return err
+	}
+	for _, block := range blocks {
+		_, err = n.state.AddBlock(block)
 		if err != nil {
 			return err
 		}
-		for _, block := range blocks {
-			_, err = n.state.AddBlock(block)
-			if err != nil {
-				return err
-			}
 
-			n.newSyncedBlocks <- block
-		}
+		n.newSyncedBlocks <- block
 	}
 
 	return nil

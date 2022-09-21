@@ -23,6 +23,10 @@ func (h *Hash) UnmarshalText(data []byte) error {
 func (h Hash) Hex() string {
 	return hex.EncodeToString(h[:])
 }
+func (h Hash) IsEmpty() bool {
+	emptyHash := Hash{}
+	return bytes.Equal(emptyHash[:], h[:])
+}
 
 type Block struct {
 	Header BlockHeader `json:"header"`
@@ -45,10 +49,7 @@ type BlockFS struct {
 func NewBlock(parent Hash, number uint64, nonce uint32, time uint64, miner Account, txs []Tx) Block {
 	return Block{BlockHeader{parent, number, nonce, time, miner}, txs}
 }
-func (h Hash) IsEmpty() bool {
-	emptyHash := Hash{}
-	return bytes.Equal(emptyHash[:], h[:])
-}
+
 func (b Block) Hash() (Hash, error) {
 	blockJson, err := json.Marshal(b)
 	if err != nil {
