@@ -8,6 +8,7 @@ import (
 )
 
 const flagDataDir = "datadir"
+const flagMiner = "miner"
 const flagPort = "port"
 const flagIP = "ip"
 
