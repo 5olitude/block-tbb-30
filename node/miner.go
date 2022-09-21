@@ -15,11 +15,12 @@ type PendingBlock struct {
 	parent database.Hash
 	number uint64
 	time   uint64
+	miner  database.Account
 	txs    []database.Tx
 }
 
-func NewPendingBlock(parent database.Hash, number uint64, txs []database.Tx) PendingBlock {
-	return PendingBlock{parent, number, uint64(time.Now().Unix()), txs}
+func NewPendingBlock(parent database.Hash, number uint64, miner database.Account, txs []database.Tx) PendingBlock {
+	return PendingBlock{parent, number, uint64(time.Now().Unix()), miner, txs}
 }
 
 func Mine(ctx context.Context, pb PendingBlock) (database.Block, error) {
@@ -45,7 +46,7 @@ func Mine(ctx context.Context, pb PendingBlock) (database.Block, error) {
 		if attempt%1000000 == 0 || attempt == 1 {
 			fmt.Printf("Mining %d Pending Txs.Attempt:%d\n", len(pb.txs), attempt)
 		}
-		block = database.NewBlock(pb.parent, pb.number, nonce, pb.time, pb.txs)
+		block = database.NewBlock(pb.parent, pb.number, nonce, pb.time, pb.miner, pb.txs)
 		blockHash, err := block.Hash()
 		if err != nil {
 			return database.Block{}, fmt.Errorf("couldnt mine .block. %s", err.Error())
